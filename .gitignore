@@ -1,0 +1,6 @@
+*.swp
+*.swo
+*.swn
+*.un~
+node_modules/
+gtp_logs/
