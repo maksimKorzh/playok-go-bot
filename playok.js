@@ -107,6 +107,7 @@ function connect() {
       if ((player1 == 'cgn811g' && player2 == '') || (player2 == 'cgn811g' && player1 == '')) {
         console.log('playok: opponent left');
         message(socket, 'leave', table);
+        return;
       }
       if (game == 1) return;
       // DEBUG
@@ -174,7 +175,7 @@ function connect() {
     
     if (response.i[0] == 90 && response.i[2] == 53) {
       if (game) {
-        socket.send(JSON.stringify({"i": [92, TABLE, 0, (row * 19 + col), 0]}));
+        message(socket, 'pass', response.i[1]);
         console.log('katago: done');
       }
     }
@@ -183,7 +184,7 @@ function connect() {
   socket.on('close', function () {
     console.log('playok: connection closed');
     katago.kill();
-    init();
+    process.exit();
   }); return socket;
 }
 
@@ -207,11 +208,11 @@ katago.stdout.on('data', (data) => {
     }
   } else {
     if (data.toString().includes('illegal')) {
-      console.log('playok: something went wrong, recovering')
+      console.log('playok: something went wrong')
     }
     
     // DEBUG
-    //console.log('katago:', data.toString());
+    console.log('katago:', data.toString());
   }
 });
 
