@@ -182,7 +182,6 @@ function connect() {
   socket.on('error', function (error) { console.log('playok: error'); });
   socket.on('close', function () {
     console.log('playok: connection closed');
-    socket.close();
     katago.kill();
     init();
   }); return socket;
