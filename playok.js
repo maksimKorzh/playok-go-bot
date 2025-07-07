@@ -18,7 +18,7 @@ TABLE = 0;
 joinedTable = 0;
 activeGame = 0;
 
-function acceptChallenge(socket, color, player, table) {
+function acceptChallenge(socket, color, table) {
   message(socket, 'join', table);
   message(socket, color, table);
   message(socket, 'start', table);
@@ -108,8 +108,6 @@ function connect() {
   });
   socket.on('message', function (data) {
     let response = JSON.parse(data);
-    // DEBUG
-    // console.log(response);
     if (response.i[0] == 70) { // lobby & pairing
       let boardSize = response.s[0].split(',')[1];
       if (parseInt(boardSize) != 19) return;
@@ -117,13 +115,11 @@ function connect() {
       let player1 = response.s[1];
       let player2 = response.s[2];
       if (joinedTable == 1) return;
-      // DEBUG
-      //if (player1 != 'cmk') return;
       if (response.i[3] == 1 && response.i[4] == 0) {
-        acceptChallenge(socket, 'white', player1, table);
+        acceptChallenge(socket, 'white', table);
       }
       if (response.i[3] == 0 && response.i[4] == 1) {
-        acceptChallenge(socket, 'black', player2, table);
+        acceptChallenge(socket, 'black', table);
       }
     }
     
@@ -191,9 +187,6 @@ function connect() {
         console.log('playok: counting game');
       }
     }
-    
-    // DEBUG
-    //if (response.i[1] == TABLE) console.log('playok:', response);
   });
   socket.on('error', function (error) { console.log('playok: error'); });
   socket.on('close', function () {
@@ -206,8 +199,6 @@ function connect() {
 
 katago.stdout.on('data', (data) => {
   let response = data.toString();
-  //DEBUG
-  //console.log('katago(DEBUG):', 'START:::' + response + ':::END');
   const isMove = response.match(/= ([A-T][0-9]+)/);
   if (isMove) {
     let move = isMove[1];
@@ -216,7 +207,7 @@ katago.stdout.on('data', (data) => {
     let sq = row * 19 + col;
     setTimeout(function() {
       console.log('katago: generated move', move);
-      let message = JSON.stringify({"i": [92, TABLE, 0, (row * 19 + col), 0]});
+      let message = JSON.stringify({"i": [92, TABLE, 0, sq, 0]});
       socket.send(message);
     }, 1000);
   } else if (response.includes('pass')) {
@@ -226,8 +217,6 @@ katago.stdout.on('data', (data) => {
     console.log('katago: RESIGN');
     message(socket, 'resign', TABLE);
   } else if (response.includes('A B C D E F')) {
-    // DEBUG
-    //console.log('katago:', '#' + TABLE, response);
   } else {
     if (data.toString().includes('illegal')) {
       console.log('katago: something went wrong')
@@ -247,8 +236,6 @@ katago.stderr.on('data', (data) => {
   console.log('katago:', data.toString());
 });
 
-process.on('SIGINT', function() { // Ctrl-C: force resign
+process.on('SIGINT', function() { // Ctrl-C: force resign, Ctrl-\ to quit (linux)
   if (side == katagoSide) message(socket, 'resign', TABLE);
 });
-
-// Ctrl-\ to quit
