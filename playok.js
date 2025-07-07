@@ -208,7 +208,7 @@ katago.stdout.on('data', (data) => {
   let response = data.toString();
   //DEBUG
   //console.log('katago(DEBUG):', 'START:::' + response + ':::END');
-  const isMove = response.match(/= ([A-T][0-9]+)\n\n/);
+  const isMove = response.match(/= ([A-T][0-9]+)/);
   if (isMove) {
     let move = isMove[1];
     let col = 'ABCDEFGHJKLMNOPQRST'.indexOf(move[0]);
