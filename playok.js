@@ -6,7 +6,11 @@ const KATAGO_PATH = '/home/cmk/katago/katago';
 const KATAGO_NET = '/home/cmk/katago/kata1-b10c128.txt.gz';
 const KATAGO_CONFIG = '/home/cmk/katago/gtp.cfg';
 
-katago = spawn(KATAGO_PATH, ['gtp', '-model', KATAGO_NET, '-config', KATAGO_CONFIG]);
+katago = spawn(
+  KATAGO_PATH, ['gtp', '-model', KATAGO_NET, '-config', KATAGO_CONFIG], {
+    detached: true,
+    stdio: ['pipe', 'pipe', 'pipe']
+});
 setTimeout(function () { socket = connect(); }, 5000);
 side = 0;
 katagoSide = -1;
@@ -59,11 +63,12 @@ function message(socket, action, table) {
           message(socket, 'leave', table);
         } else if (activeGame) {
           if (katagoSide == 0) {
+            katago.stdin.write('clear_board\n');
             katago.stdin.write('genmove B\n');
             katago.stdin.write('showboard\n');
           }
         }
-      }, 2000);
+      }, 5000);
       break;
     case 'resign':
       request.i = [93, table, 4, 0];
@@ -201,6 +206,8 @@ function connect() {
 
 katago.stdout.on('data', (data) => {
   let response = data.toString();
+  //DEBUG
+  //console.log('katago(DEBUG):', 'START:::' + response + ':::END');
   const isMove = response.match(/= ([A-T][0-9]+)\n\n/);
   if (isMove) {
     let move = isMove[1];
@@ -225,13 +232,19 @@ katago.stdout.on('data', (data) => {
     if (data.toString().includes('illegal')) {
       console.log('katago: something went wrong')
     }
-    //DEBUG
-    //console.log('katago(DEBUG):', data.toString());
   }
 });
 
+katago.on('exit', (code, signal) => {
+  console.error('katago: exited');
+});
+
+katago.on('error', (err) => {
+  console.error('katago:', err);
+});
+
 katago.stderr.on('data', (data) => {
-  console.log('katago(err):', data.toString());
+  console.log('katago:', data.toString());
 });
 
 process.on('SIGINT', function() { // Ctrl-C: force resign
