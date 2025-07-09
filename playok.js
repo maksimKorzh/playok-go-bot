@@ -1,5 +1,6 @@
 const WebSocket = require('ws');
 const { spawn } = require('child_process');
+const prompt = require('prompt-sync')()
 
 // CHANGE THESE VALUES TO FIT YOUR KATAGO PATH!!!
 const KATAGO_PATH = '/home/cmk/katago/katago';
@@ -11,7 +12,7 @@ katago = spawn(
     detached: true,
     stdio: ['pipe', 'pipe', 'pipe']
 });
-setTimeout(function () { socket = connect(); }, 5000);
+setTimeout(function () { login(); }, 5000);
 side = 0;
 katagoSide = -1;
 TABLE = 0;
@@ -55,6 +56,7 @@ function message(socket, action, table) {
       console.log('playok: took black stones at table #' + table);
       break;
     case 'start':
+      activeGame = 0;
       request.i = [85, table];
       console.log('playok: attempting to start a game at table #' + table);
       setTimeout(function() {
@@ -79,7 +81,47 @@ function message(socket, action, table) {
   } socket.send(JSON.stringify(request));
 }
 
-function connect() {
+function login() {
+  var username = prompt('Username:')
+  var password = prompt('Password:')
+  const axios = require('axios');
+  const tough = require('tough-cookie');
+  const { wrapper } = require('axios-cookiejar-support');
+  (async () => {
+    const cookieJar = new tough.CookieJar();
+    const client = wrapper(axios.create({
+      jar: cookieJar,
+      withCredentials: true,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/130.0.0.0 Safari/537.36',
+        'Referer': 'https://www.playok.com/en/',
+      }
+    }));
+
+    await cookieJar.setCookie('ref=https://www.playok.com/en/go/; Domain=www.playok.com; Path=/', 'https://www.playok.com');
+
+    const data = new URLSearchParams({
+      username: username,
+      pw: password,
+    }).toString();
+  
+    const response = await client.post('https://www.playok.com/en/login.phtml', data, {
+      headers: { 'Content-Type': 'application/x-www-form-urlencoded' }
+    });
+  
+    const cookies = await cookieJar.getCookies('https://www.playok.com');
+    
+    if (response.data.toLowerCase().includes('log in')) {
+      console.log('playok: login failed');
+      login();
+    } else {
+      console.log('playok: logged in as "' + username + '"');
+      cookies.forEach(function(c) { if (c.key == 'ksession') socket = connect(c.value.split(':')[0]); });
+    }
+  })();
+}
+
+function connect(ksession) {
   const socket = new WebSocket('wss:x.playok.com:17003/ws/', {
     headers: {
      'Origin': 'null',
@@ -89,7 +131,7 @@ function connect() {
     const initialMessage = JSON.stringify({
       "i":[1721],
       "s":[
-        "+9301980859678439|1959167412|20201458",  // guest "cgn811g"
+        ksession,
         "en",
         "b",
         "",
@@ -100,7 +142,7 @@ function connect() {
       ]}
     );
     socket.send(initialMessage);
-    console.log('playok: connected to PlayOK');
+    console.log('playok: connected to websocket');
     setInterval(function() {
       const keepAliveMessage = JSON.stringify({ "i": [] });
       socket.send(keepAliveMessage);
@@ -114,7 +156,10 @@ function connect() {
       let table = response.i[1];
       let player1 = response.s[1];
       let player2 = response.s[2];
-      if (joinedTable == 1) return;
+      if (joinedTable == 1) {
+        if (!activeGame) message(socket, 'leave', TABLE);
+        return;
+      }
       if (response.i[3] == 1 && response.i[4] == 0) {
         acceptChallenge(socket, 'white', table);
       }
@@ -192,7 +237,7 @@ function connect() {
   socket.on('close', function () {
     katago.kill();
     console.log('\n\nkatago: killed');
-    console.log('playok: connection closed');
+    console.log('playok: websocket connection closed');
     process.exit();
   }); return socket;
 }
@@ -239,3 +284,9 @@ katago.stderr.on('data', (data) => {
 process.on('SIGINT', function() { // Ctrl-C: force resign, Ctrl-\ to quit (linux)
   if (side == katagoSide) message(socket, 'resign', TABLE);
 });
+
+// Debug
+setInterval(function() {
+  let timestamp = new Date().toJSON();
+  console.log('system: ' + timestamp + ' katago ' + katago.stdin.writable + ', socket ' + socket.readyState + ', side ' + side + ', katagoSide ' + katagoSide + ', table ' + TABLE + ', joinedGame ' + joinedTable + ', activeGame ' + activeGame);
+}, 60000)

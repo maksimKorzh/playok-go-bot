@@ -1,0 +1,28 @@
+{
+  "name": "playok-go-bot",
+  "version": "1.0.0",
+  "description": "fully automated bot to play with katago on playok.com",
+  "main": "playok.js",
+  "scripts": {
+    "start": "node playok.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/maksimKorzh/playok-go-bot.git"
+  },
+  "keywords": [
+    "katago"
+  ],
+  "author": "cmk",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/maksimKorzh/playok-go-bot/issues"
+  },
+  "homepage": "https://github.com/maksimKorzh/playok-go-bot#readme",
+  "dependencies": {
+    "axios": "^0.27.2",
+    "axios-cookiejar-support": "^5.0.1",
+    "prompt-sync": "^4.2.0",
+    "tough-cookie": "^4.1.4"
+  }
+}
