@@ -289,7 +289,8 @@ setInterval(function() {
   
   // Recover
   if (joinedTable == 1 && activeGame == 0 && TABLE) {
+    // Debug
+    //console.log('playok: recovering');
     message(socket, 'leave', TABLE);
-    console.log('system: recovering');
   }
 }, 60000)
