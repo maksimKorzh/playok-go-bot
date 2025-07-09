@@ -82,8 +82,8 @@ function message(socket, action, table) {
 }
 
 function login() {
-  var username = prompt('Username:')
-  var password = prompt('Password:')
+  var username = prompt('Username: ')
+  var password = prompt('Password: ')
   const axios = require('axios');
   const tough = require('tough-cookie');
   const { wrapper } = require('axios-cookiejar-support');
@@ -156,10 +156,7 @@ function connect(ksession) {
       let table = response.i[1];
       let player1 = response.s[1];
       let player2 = response.s[2];
-      if (joinedTable == 1) {
-        if (!activeGame) message(socket, 'leave', TABLE);
-        return;
-      }
+      if (joinedTable == 1) return;
       if (response.i[3] == 1 && response.i[4] == 0) {
         acceptChallenge(socket, 'white', table);
       }
@@ -285,8 +282,14 @@ process.on('SIGINT', function() { // Ctrl-C: force resign, Ctrl-\ to quit (linux
   if (side == katagoSide) message(socket, 'resign', TABLE);
 });
 
-// Debug
-//setInterval(function() {
-//  let timestamp = new Date().toJSON();
-//  console.log('system: ' + timestamp + ' katago ' + katago.stdin.writable + ', socket ' + socket.readyState + ', side ' + side + ', katagoSide ' + katagoSide + ', table ' + TABLE + ', joinedGame ' + joinedTable + ', activeGame ' + activeGame);
-//}, 60000)
+setInterval(function() {
+  // Debug
+  //let timestamp = new Date().toJSON();
+  //console.log(timestamp + ' katago ' + katago.stdin.writable + ', socket ' + socket.readyState + ', side ' + side + ', katagoSide ' + katagoSide + ', table ' + TABLE + ', joinedGame ' + joinedTable + ', activeGame ' + activeGame);
+  
+  // Recover
+  if (joinedTable == 1 && activeGame == 0 && TABLE) {
+    message(socket, 'leave', TABLE);
+    console.log('system: recovering');
+  }
+}, 60000)
