@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/maksimKorzh/playok-go-bot#readme",
   "dependencies": {
-    "axios": "^0.27.2",
+    "axios": "^1.10.0",
     "axios-cookiejar-support": "^5.0.1",
     "prompt-sync": "^4.2.0",
     "tough-cookie": "^4.1.4"
