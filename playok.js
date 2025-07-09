@@ -286,7 +286,7 @@ process.on('SIGINT', function() { // Ctrl-C: force resign, Ctrl-\ to quit (linux
 });
 
 // Debug
-setInterval(function() {
-  let timestamp = new Date().toJSON();
-  console.log('system: ' + timestamp + ' katago ' + katago.stdin.writable + ', socket ' + socket.readyState + ', side ' + side + ', katagoSide ' + katagoSide + ', table ' + TABLE + ', joinedGame ' + joinedTable + ', activeGame ' + activeGame);
-}, 60000)
+//setInterval(function() {
+//  let timestamp = new Date().toJSON();
+//  console.log('system: ' + timestamp + ' katago ' + katago.stdin.writable + ', socket ' + socket.readyState + ', side ' + side + ', katagoSide ' + katagoSide + ', table ' + TABLE + ', joinedGame ' + joinedTable + ', activeGame ' + activeGame);
+//}, 60000)
