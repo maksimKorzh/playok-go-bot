@@ -1,6 +1,19 @@
 const WebSocket = require('ws');
 const { spawn } = require('child_process');
 const prompt = require('prompt-sync')()
+const fs = require('fs');
+const path = require('path');
+
+const logFile = fs.createWriteStream(path.join(__dirname, 'botlog.txt'), { flags: 'a' });
+const originalLog = console.log;
+
+console.log = function (...args) {
+  const message = args.map(arg => {
+    return typeof arg === 'string' ? arg : JSON.stringify(arg);
+  }).join(' ');
+  originalLog.apply(console, args);
+  logFile.write(message + '\n');
+};
 
 // CHANGE THESE VALUES TO FIT YOUR KATAGO PATH!!!
 const KATAGO_PATH = '/home/cmk/katago/katago';
@@ -83,7 +96,7 @@ function message(socket, action, table) {
 
 function login() {
   var username = prompt('Username: ')
-  var password = prompt('Password: ')
+  var password = prompt('Password: ', { echo: '' })
   const axios = require('axios');
   const tough = require('tough-cookie');
   const { wrapper } = require('axios-cookiejar-support');
@@ -290,7 +303,7 @@ setInterval(function() {
   // Recover
   if (joinedTable == 1 && activeGame == 0 && TABLE) {
     // Debug
-    //console.log('playok: recovering');
+    console.log('playok: stuck at table #' + TABLE);
     message(socket, 'leave', TABLE);
   }
 }, 60000)
