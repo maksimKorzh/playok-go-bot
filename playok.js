@@ -220,7 +220,6 @@ function connect(ksession) {
     
     if (response.i[0] == 81 && response.i[1] == TABLE) { // chat messages & system notifications
       console.log('playok:', response.s[0]);
-      //if (response.s[0].includes('does not agree')) message(socket, 'resign', response.i[1]);
       if (response.s[0].includes('resigns') ||
           response.s[0].includes('territory') ||
           response.s[0].includes('exceeded') ||
