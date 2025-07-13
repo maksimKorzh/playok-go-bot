@@ -2,9 +2,9 @@
   "name": "playok-go-bot",
   "version": "1.0.0",
   "description": "fully automated bot to play with katago on playok.com",
-  "main": "playok.js",
+  "main": "playok-go-bot.js",
   "scripts": {
-    "start": "node playok.js"
+    "start": "node playok-go-bot.js"
   },
   "repository": {
     "type": "git",
